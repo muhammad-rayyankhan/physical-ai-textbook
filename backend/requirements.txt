@@ -9,6 +9,7 @@ langchain-community==0.0.20
 # Cloud Services
 qdrant-client==1.7.0
 psycopg2-binary==2.9.9
+huggingface-hub==0.20.0
 
 # Authentication
 passlib[bcrypt]==1.7.4
