@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-70b-versatile"
 
+    # Hugging Face Configuration (free embeddings)
+    HUGGINGFACE_API_KEY: str = ""
+
     # OpenAI Configuration (optional - only needed if USE_OPENAI_* flags are true)
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-3.5-turbo"

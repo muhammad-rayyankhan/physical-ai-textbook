@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
 from src.core.config import settings
+from src.services.embeddings_hf import embedding_service
 import logging
 import uuid
 
@@ -62,7 +63,7 @@ class VectorStoreService:
                 logger.info(f"Creating collection: {self.collection_name}")
 
                 # Get embedding dimension from service
-                from src.services.embeddings import embedding_service
+                from src.services.embeddings_hf import embedding_service
                 vector_size = embedding_service.get_embedding_dimension()
 
                 self.client.create_collection(

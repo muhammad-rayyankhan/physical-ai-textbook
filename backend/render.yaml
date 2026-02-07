@@ -1,0 +1,38 @@
+version: 2
+services:
+  - type: web
+    name: textbook-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION
+        value: textbook_chunks
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.1-70b-versatile
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        fromGroup: web
+      - key: CORS_ORIGINS
+        value: https://website-seven-eta-74.vercel.app,http://localhost:3000
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: ENVIRONMENT
+        value: production

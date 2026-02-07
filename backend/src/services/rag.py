@@ -5,7 +5,7 @@ Orchestrates the full Retrieval-Augmented Generation pipeline.
 """
 
 from typing import List, Dict, Any, Optional
-from src.services.embeddings import embedding_service
+from src.services.embeddings_hf import embedding_service
 from src.services.vector_store import vector_store_service
 # Switch between LLM implementations
 # from src.services.llm import llm_service  # Local Ollama
