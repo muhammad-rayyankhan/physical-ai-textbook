@@ -24,8 +24,9 @@ QDRANT_COLLECTION=textbook_chunks
 # Neon PostgreSQL Database
 DATABASE_URL=postgresql://user:password@host/database
 
-# OpenAI API
-OPENAI_API_KEY=sk-your-openai-api-key
+# Groq API (Free, Fast LLM)
+GROQ_API_KEY=gsk-your-groq-api-key
+GROQ_MODEL=llama-3.1-70b-versatile
 
 # API Configuration
 API_HOST=0.0.0.0
@@ -34,6 +35,9 @@ CORS_ORIGINS=https://website-seven-eta-74.vercel.app,http://localhost:3000
 
 # Admin API Key (for ingestion)
 ADMIN_API_KEY=your-secure-random-key
+
+# Authentication
+AUTH_SECRET=your-auth-secret
 
 # Environment
 ENVIRONMENT=production
@@ -57,11 +61,14 @@ ENVIRONMENT=production
 4. Copy the connection string
 5. Add to Railway environment variables as `DATABASE_URL`
 
-### 3. OpenAI API Key
+### 3. Groq API Key (Free)
 
-1. Go to https://platform.openai.com
-2. Create an API key
-3. Add to Railway environment variables as `OPENAI_API_KEY`
+1. Go to https://console.groq.com
+2. Sign up (free, no credit card required)
+3. Create an API key
+4. Add to Railway environment variables as `GROQ_API_KEY`
+
+See `GROQ-SETUP.md` for detailed instructions.
 
 ## After Deployment
 
@@ -120,7 +127,7 @@ railway up
 railway variables set QDRANT_URL=https://...
 railway variables set QDRANT_API_KEY=...
 railway variables set DATABASE_URL=postgresql://...
-railway variables set OPENAI_API_KEY=sk-...
+railway variables set GROQ_API_KEY=gsk-...
 railway variables set CORS_ORIGINS=https://website-seven-eta-74.vercel.app
 railway variables set ADMIN_API_KEY=your-secure-key
 railway variables set ENVIRONMENT=production
@@ -156,9 +163,9 @@ railway logs
 - **Railway**: $5/month (Hobby plan) or free trial
 - **Qdrant**: Free tier (1GB)
 - **Neon**: Free tier (0.5GB)
-- **OpenAI**: Pay-per-use (~$0.01-0.10 per query)
+- **Groq**: Free tier (14,400 requests/day)
 
-**Total**: ~$5-10/month
+**Total**: ~$5/month (just Railway hosting)
 
 ## Next Steps
 

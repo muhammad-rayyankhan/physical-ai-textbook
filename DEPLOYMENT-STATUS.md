@@ -66,11 +66,12 @@ railway up             # Deploy
 3. Create project → Copy connection string
 4. Save for Step 3
 
-#### C. OpenAI API
-1. Go to: https://platform.openai.com/api-keys
-2. Create new API key
-3. Copy key (starts with `sk-`)
+#### C. Groq API (Free LLM)
+1. Go to: https://console.groq.com
+2. Sign up (free, no credit card required)
+3. Create API key → Copy key (starts with `gsk_`)
 4. Save for Step 3
+5. See `GROQ-SETUP.md` for detailed instructions
 
 ### Step 3: Configure Environment Variables (3 minutes)
 
@@ -83,18 +84,20 @@ QDRANT_COLLECTION=textbook_chunks
 
 DATABASE_URL=<from-step-2B>
 
-OPENAI_API_KEY=<from-step-2C>
+GROQ_API_KEY=<from-step-2C>
+GROQ_MODEL=llama-3.1-70b-versatile
 
 API_HOST=0.0.0.0
 API_PORT=$PORT
 CORS_ORIGINS=https://website-seven-eta-74.vercel.app,http://localhost:3000
 
 ADMIN_API_KEY=<generate-random-string>
+AUTH_SECRET=<generate-random-string>
 
 ENVIRONMENT=production
 ```
 
-**Generate ADMIN_API_KEY**: Use any random string generator or run:
+**Generate Random Keys**: Use any random string generator or run:
 ```bash
 openssl rand -hex 32
 ```
@@ -163,7 +166,7 @@ railway up
 railway variables set QDRANT_URL=...
 railway variables set QDRANT_API_KEY=...
 railway variables set DATABASE_URL=...
-railway variables set OPENAI_API_KEY=...
+railway variables set GROQ_API_KEY=gsk-...
 railway variables set CORS_ORIGINS=https://website-seven-eta-74.vercel.app
 railway variables set ADMIN_API_KEY=$(openssl rand -hex 32)
 railway variables set ENVIRONMENT=production
@@ -178,8 +181,8 @@ railway run python -m rag.scripts.ingest_textbook --clear
 | Railway | Hobby | $5/month |
 | Qdrant | Free Tier | $0 |
 | Neon | Free Tier | $0 |
-| OpenAI | Pay-per-use | ~$1-5/month |
-| **Total** | | **~$6-10/month** |
+| Groq | Free Tier | $0 |
+| **Total** | | **~$5/month** |
 
 ## 🔗 Important URLs
 

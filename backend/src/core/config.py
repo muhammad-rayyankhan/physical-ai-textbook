@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION: str = "textbook_chunks"
 
+    # Groq Configuration (free, fast LLM inference)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.1-70b-versatile"
+
     # OpenAI Configuration (optional - only needed if USE_OPENAI_* flags are true)
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-3.5-turbo"
