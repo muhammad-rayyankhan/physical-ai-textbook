@@ -36,25 +36,34 @@ class VectorStoreService:
     """
 
     def __init__(self):
-        """Initialize Qdrant client with cloud connection."""
-        logger.info(f"Initializing Qdrant client: {settings.QDRANT_URL}")
+        """Initialize Qdrant client configuration (lazy loading)."""
+        logger.info(f"Initializing Qdrant client configuration: {settings.QDRANT_URL}")
 
-        # Create Qdrant client
-        self.client = QdrantClient(
-            url=settings.QDRANT_URL,
-            api_key=settings.QDRANT_API_KEY if settings.QDRANT_API_KEY else None,
-            timeout=30
-        )
-
+        # Store configuration but don't connect yet
+        self._client = None
+        self._collection_ensured = False
         self.collection_name = settings.QDRANT_COLLECTION
 
-        # Create collection if it doesn't exist
-        self._ensure_collection()
+        logger.info(f"Qdrant client configured for lazy loading")
 
-        logger.info(f"Collection '{self.collection_name}' ready")
+    @property
+    def client(self):
+        """Lazy-load Qdrant client on first access."""
+        if self._client is None:
+            logger.info("Connecting to Qdrant Cloud...")
+            self._client = QdrantClient(
+                url=settings.QDRANT_URL,
+                api_key=settings.QDRANT_API_KEY if settings.QDRANT_API_KEY else None,
+                timeout=30
+            )
+            logger.info("Qdrant client connected")
+        return self._client
 
     def _ensure_collection(self):
-        """Create collection if it doesn't exist."""
+        """Create collection if it doesn't exist (called on first use)."""
+        if self._collection_ensured:
+            return
+
         try:
             collections = self.client.get_collections().collections
             collection_names = [c.name for c in collections]
@@ -76,6 +85,8 @@ class VectorStoreService:
                 logger.info(f"Collection created with vector size: {vector_size}")
             else:
                 logger.info(f"Collection '{self.collection_name}' already exists")
+
+            self._collection_ensured = True
         except Exception as e:
             logger.error(f"Error ensuring collection: {e}")
             raise
@@ -98,6 +109,9 @@ class VectorStoreService:
         """
         if not ids or len(ids) != len(texts) != len(embeddings) != len(metadatas):
             raise ValueError("All input lists must have the same non-zero length")
+
+        # Ensure collection exists before adding chunks
+        self._ensure_collection()
 
         logger.info(f"Adding {len(ids)} chunks to vector store")
 
@@ -147,6 +161,8 @@ class VectorStoreService:
         Returns:
             List of SearchResult objects ordered by similarity
         """
+        # Ensure collection exists before searching
+        self._ensure_collection()
         logger.info(f"Searching for top {top_k} similar documents")
 
         # Build filter if provided
@@ -208,6 +224,8 @@ class VectorStoreService:
     def get_count(self) -> int:
         """Get the total number of documents in the collection."""
         try:
+            # Ensure collection exists before getting count
+            self._ensure_collection()
             info = self.client.get_collection(collection_name=self.collection_name)
             return info.points_count
         except Exception as e:
