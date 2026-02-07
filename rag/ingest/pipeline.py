@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
 
 from rag.ingest.loader import load_all_chapters
 from rag.ingest.chunker import chunk_all_chapters
-from src.services.embeddings import embedding_service
+from src.services.embeddings_hf import embedding_service
 from src.services.vector_store import vector_store_service
 
 logger = logging.getLogger(__name__)

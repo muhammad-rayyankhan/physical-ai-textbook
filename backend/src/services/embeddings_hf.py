@@ -5,7 +5,7 @@ Free embeddings using Hugging Face's serverless inference API.
 """
 
 from typing import List
-import requests
+from huggingface_hub import InferenceClient
 from src.core.config import settings
 import logging
 
@@ -16,15 +16,15 @@ class EmbeddingService:
     """
     Service for generating text embeddings using Hugging Face Inference API.
 
-    Uses the free serverless inference API - no local models needed.
+    Uses the free serverless inference API via InferenceClient.
     Model: sentence-transformers/all-MiniLM-L6-v2 (384 dimensions)
     """
 
     def __init__(self):
-        """Initialize Hugging Face API client."""
+        """Initialize Hugging Face Inference Client."""
         self.api_key = settings.HUGGINGFACE_API_KEY
         self.model = "sentence-transformers/all-MiniLM-L6-v2"
-        self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{self.model}"
+        self.client = InferenceClient(token=self.api_key)
         self.dimension = 384
         logger.info(f"Initialized embedding service with Hugging Face model: {self.model}")
 
@@ -42,14 +42,7 @@ class EmbeddingService:
             raise ValueError("Text cannot be empty")
 
         try:
-            response = requests.post(
-                self.api_url,
-                headers={"Authorization": f"Bearer {self.api_key}"},
-                json={"inputs": text, "options": {"wait_for_model": True}},
-                timeout=30
-            )
-            response.raise_for_status()
-            embedding = response.json()
+            embedding = self.client.feature_extraction(text, model=self.model)
 
             # Handle response format (can be nested list)
             if isinstance(embedding, list) and len(embedding) > 0:
@@ -58,7 +51,7 @@ class EmbeddingService:
 
             return embedding
 
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.error(f"Hugging Face API error: {str(e)}")
             raise RuntimeError(f"Failed to generate embedding: {str(e)}")
 
@@ -87,22 +80,18 @@ class EmbeddingService:
         logger.info(f"Embedding {len(valid_texts)} texts")
 
         try:
-            response = requests.post(
-                self.api_url,
-                headers={"Authorization": f"Bearer {self.api_key}"},
-                json={"inputs": valid_texts, "options": {"wait_for_model": True}},
-                timeout=60
-            )
-            response.raise_for_status()
-            embeddings = response.json()
+            # Process texts one by one (InferenceClient doesn't support batch well)
+            embeddings = []
+            for text in valid_texts:
+                embedding = self.client.feature_extraction(text, model=self.model)
+                if isinstance(embedding, list) and len(embedding) > 0:
+                    if isinstance(embedding[0], list):
+                        embedding = embedding[0]
+                embeddings.append(embedding)
 
-            # Ensure proper format
-            if isinstance(embeddings, list):
-                return embeddings
-            else:
-                raise ValueError(f"Unexpected response format: {type(embeddings)}")
+            return embeddings
 
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.error(f"Hugging Face batch embedding failed: {str(e)}")
             raise RuntimeError(f"Failed to generate embeddings: {str(e)}")
 
