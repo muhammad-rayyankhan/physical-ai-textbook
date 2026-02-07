@@ -1,0 +1,291 @@
+openapi: 3.0.3
+info:
+  title: Textbook Content API
+  description: |
+    Future API specification for backend integration with the Docusaurus textbook.
+    This API will be implemented when RAG, authentication, and personalization features are added.
+
+    **Note**: This is a FUTURE contract. The current textbook is a static site with no backend.
+  version: 1.0.0
+  contact:
+    name: Physical AI Textbook Team
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production API (future)
+  - url: http://localhost:8000/v1
+    description: Local development (future)
+
+tags:
+  - name: content
+    description: Textbook content operations
+  - name: progress
+    description: User reading progress tracking
+  - name: search
+    description: Content search operations
+
+paths:
+  /chapters:
+    get:
+      summary: List all chapters
+      description: Returns metadata for all textbook chapters
+      tags:
+        - content
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChapterMetadata'
+                  total_count:
+                    type: integer
+                  total_reading_time:
+                    type: integer
+                    description: Total reading time in minutes
+
+  /chapters/{chapterId}:
+    get:
+      summary: Get chapter by ID
+      description: Returns full chapter content and metadata
+      tags:
+        - content
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: string
+          examples:
+            intro:
+              value: intro
+            chapter1:
+              value: chapter-01
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+        '404':
+          description: Chapter not found
+
+  /search:
+    get:
+      summary: Search chapter content
+      description: Full-text search across all chapters
+      tags:
+        - search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+                  total_count:
+                    type: integer
+
+  /progress:
+    post:
+      summary: Track reading progress
+      description: Record user's reading progress for a chapter
+      tags:
+        - progress
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProgressUpdate'
+      responses:
+        '201':
+          description: Progress recorded
+        '401':
+          description: Unauthorized
+
+  /progress/{userId}:
+    get:
+      summary: Get user progress
+      description: Retrieve user's reading history and progress
+      tags:
+        - progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProgress'
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+
+components:
+  schemas:
+    ChapterMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          example: chapter-01
+        chapter_number:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Foundations of Physical AI
+        description:
+          type: string
+        reading_time:
+          type: integer
+          description: Estimated reading time in minutes
+        learning_objectives:
+          type: array
+          items:
+            type: string
+        key_takeaways:
+          type: array
+          items:
+            type: string
+        url:
+          type: string
+          format: uri
+          example: /chapter-01
+
+    Chapter:
+      allOf:
+        - $ref: '#/components/schemas/ChapterMetadata'
+        - type: object
+          properties:
+            content:
+              type: string
+              description: Full chapter content in Markdown
+            code_examples:
+              type: array
+              items:
+                type: object
+                properties:
+                  language:
+                    type: string
+                  code:
+                    type: string
+                  title:
+                    type: string
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  src:
+                    type: string
+                  alt:
+                    type: string
+                  caption:
+                    type: string
+
+    SearchResult:
+      type: object
+      properties:
+        chapter_id:
+          type: string
+        chapter_title:
+          type: string
+        excerpt:
+          type: string
+          description: Text excerpt with search term highlighted
+        relevance_score:
+          type: number
+          format: float
+        url:
+          type: string
+          format: uri
+
+    ProgressUpdate:
+      type: object
+      required:
+        - chapter_id
+        - progress_percent
+      properties:
+        chapter_id:
+          type: string
+        progress_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        time_spent:
+          type: integer
+          description: Time spent in seconds
+        completed:
+          type: boolean
+
+    UserProgress:
+      type: object
+      properties:
+        user_id:
+          type: string
+        chapters_completed:
+          type: integer
+        total_chapters:
+          type: integer
+        completion_percent:
+          type: integer
+        total_time_spent:
+          type: integer
+          description: Total time in seconds
+        chapter_progress:
+          type: array
+          items:
+            type: object
+            properties:
+              chapter_id:
+                type: string
+              progress_percent:
+                type: integer
+              completed:
+                type: boolean
+              last_accessed:
+                type: string
+                format: date-time
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

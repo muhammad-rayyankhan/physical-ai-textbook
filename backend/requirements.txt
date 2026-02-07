@@ -1,0 +1,36 @@
+# FastAPI and Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# LangChain (for RAG pipeline)
+langchain==0.1.0
+langchain-community==0.0.20
+
+# Cloud Services
+openai==1.12.0
+qdrant-client==1.7.0
+psycopg2-binary==2.9.9
+
+# Authentication
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# Local Embeddings (backward compatibility)
+sentence-transformers==2.3.1
+
+# Database
+sqlalchemy==2.0.25
+
+# Configuration and Validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+httpx==0.26.0
+
+# Legacy Local Dependencies (commented out for rollback)
+# chromadb==0.4.22
+# ollama==0.1.6

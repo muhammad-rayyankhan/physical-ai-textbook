@@ -1,0 +1,426 @@
+openapi: 3.0.3
+info:
+  title: RAG Chatbot API
+  description: |
+    API for the RAG (Retrieval-Augmented Generation) chatbot that answers questions
+    from the Physical AI & Humanoid Robotics textbook.
+
+    **Features:**
+    - Semantic search over textbook content
+    - Grounded answers with citations
+    - Conversation history tracking
+    - Document ingestion pipeline
+  version: 1.0.0
+  contact:
+    name: Physical AI Textbook Team
+
+servers:
+  - url: https://api.example.railway.app
+    description: Production API (Railway)
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: chat
+    description: Chat and question answering operations
+  - name: ingest
+    description: Document ingestion operations (admin only)
+  - name: health
+    description: Health check and monitoring
+
+paths:
+  /api/chat/ask:
+    post:
+      summary: Ask a question
+      description: Submit a question and receive an answer with citations from the textbook
+      tags:
+        - chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionRequest'
+            examples:
+              simple_question:
+                summary: Simple question
+                value:
+                  question: "What is Physical AI?"
+              with_session:
+                summary: Question with session ID
+                value:
+                  question: "How do robots sense their environment?"
+                  session_id: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Successful response with answer and citations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerResponse'
+              examples:
+                success:
+                  summary: Successful answer
+                  value:
+                    answer: "Physical AI refers to artificial intelligence systems that interact with and operate in the physical world through embodied agents like robots."
+                    citations:
+                      - chapter_id: "chapter-01"
+                        chapter_title: "Foundations of Physical AI"
+                        section: "What is Physical AI?"
+                        text_snippet: "Physical AI refers to artificial intelligence systems..."
+                        relevance_score: 0.95
+                    sources:
+                      - "chapter-01-chunk-001"
+                      - "chapter-01-chunk-002"
+                    session_id: "123e4567-e89b-12d3-a456-426614174000"
+        '400':
+          description: Bad request (invalid question format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Too many requests (rate limit exceeded)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/chat/history:
+    get:
+      summary: Get chat history
+      description: Retrieve conversation history for a session
+      tags:
+        - chat
+      parameters:
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID to retrieve history for
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+          description: Maximum number of messages to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: Number of messages to skip (for pagination)
+      responses:
+        '200':
+          description: Successful response with chat history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatHistory'
+        '400':
+          description: Bad request (invalid session ID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ingest:
+    post:
+      summary: Ingest textbook content
+      description: |
+        Trigger document ingestion pipeline to process textbook chapters
+        and update the vector database. **Admin only**.
+      tags:
+        - ingest
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestRequest'
+      responses:
+        '202':
+          description: Ingestion started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+        '401':
+          description: Unauthorized (missing or invalid API key)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict (ingestion already in progress)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/health:
+    get:
+      summary: Health check
+      description: Check API health and service status
+      tags:
+        - health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    QuestionRequest:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: User's question about the textbook content
+          example: "What is Physical AI?"
+        session_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional session ID for conversation tracking
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    Citation:
+      type: object
+      required:
+        - chapter_id
+        - chapter_title
+        - section
+        - text_snippet
+        - relevance_score
+      properties:
+        chapter_id:
+          type: string
+          description: Chapter identifier
+          example: "chapter-01"
+        chapter_title:
+          type: string
+          description: Chapter title
+          example: "Foundations of Physical AI"
+        section:
+          type: string
+          description: Section name within chapter
+          example: "What is Physical AI?"
+        text_snippet:
+          type: string
+          description: Relevant text excerpt from the source
+          example: "Physical AI refers to artificial intelligence systems..."
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Relevance score from vector search
+          example: 0.95
+
+    AnswerResponse:
+      type: object
+      required:
+        - answer
+        - citations
+        - sources
+        - session_id
+      properties:
+        answer:
+          type: string
+          description: Generated answer to the question
+          example: "Physical AI refers to artificial intelligence systems that interact with and operate in the physical world through embodied agents like robots."
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+          description: List of citations supporting the answer
+        sources:
+          type: array
+          items:
+            type: string
+          description: List of source chunk IDs used to generate the answer
+          example: ["chapter-01-chunk-001", "chapter-01-chunk-002"]
+        session_id:
+          type: string
+          format: uuid
+          description: Session ID for this conversation
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    ChatMessage:
+      type: object
+      required:
+        - id
+        - question
+        - answer
+        - citations
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message ID
+        question:
+          type: string
+          description: User's question
+        answer:
+          type: string
+          description: Chatbot's answer
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+        created_at:
+          type: string
+          format: date-time
+          description: Message timestamp
+
+    ChatHistory:
+      type: object
+      required:
+        - session_id
+        - messages
+        - message_count
+        - created_at
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          description: Session ID
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          description: List of messages in chronological order
+        message_count:
+          type: integer
+          description: Total number of messages in session
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+
+    IngestRequest:
+      type: object
+      properties:
+        chapters:
+          type: array
+          items:
+            type: string
+          description: Optional list of specific chapters to ingest (default: all)
+          example: ["chapter-01", "chapter-02"]
+        force:
+          type: boolean
+          default: false
+          description: Force re-ingestion even if content hasn't changed
+
+    IngestResponse:
+      type: object
+      required:
+        - status
+        - job_id
+      properties:
+        status:
+          type: string
+          enum: [started, queued]
+          description: Ingestion job status
+        job_id:
+          type: string
+          format: uuid
+          description: Job ID for tracking ingestion progress
+        estimated_duration:
+          type: integer
+          description: Estimated duration in seconds
+          example: 120
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall service health status
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+        services:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [up, down]
+            vector_db:
+              type: string
+              enum: [up, down]
+            llm:
+              type: string
+              enum: [up, down]
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "INVALID_REQUEST"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Question must be between 1 and 500 characters"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for admin operations

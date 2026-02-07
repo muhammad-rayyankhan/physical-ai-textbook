@@ -1,0 +1,180 @@
+# Content Schema for Docusaurus Textbook
+# Defines the frontmatter structure for all content pages
+
+version: "1.0.0"
+description: "Frontmatter schema for textbook chapters and pages"
+
+schemas:
+  # Base page metadata (all pages)
+  PageMetadata:
+    type: object
+    required:
+      - id
+      - title
+      - sidebar_label
+      - sidebar_position
+      - description
+      - keywords
+      - reading_time
+    properties:
+      id:
+        type: string
+        description: "Unique identifier for the page"
+        pattern: "^[a-z0-9-]+$"
+        examples: ["intro", "chapter-01", "chapter-02"]
+      title:
+        type: string
+        description: "Full page title"
+        minLength: 10
+        maxLength: 100
+        examples: ["Introduction to Physical AI and Humanoid Robotics"]
+      sidebar_label:
+        type: string
+        description: "Short label for sidebar navigation"
+        minLength: 3
+        maxLength: 30
+        examples: ["Introduction", "Chapter 1", "Sensors"]
+      sidebar_position:
+        type: integer
+        description: "Order in sidebar (1-based)"
+        minimum: 1
+        maximum: 20
+      description:
+        type: string
+        description: "SEO meta description"
+        minLength: 150
+        maxLength: 160
+      keywords:
+        type: array
+        description: "SEO keywords"
+        items:
+          type: string
+        minItems: 3
+        maxItems: 10
+        examples: [["physical ai", "humanoid robotics", "ai education"]]
+      reading_time:
+        type: integer
+        description: "Estimated reading time in minutes"
+        minimum: 2
+        maximum: 10
+
+  # Extended chapter metadata
+  ChapterMetadata:
+    allOf:
+      - $ref: "#/schemas/PageMetadata"
+      - type: object
+        required:
+          - chapter_number
+          - learning_objectives
+          - key_takeaways
+        properties:
+          chapter_number:
+            type: integer
+            description: "Chapter number"
+            minimum: 1
+            maximum: 8
+          learning_objectives:
+            type: array
+            description: "Learning objectives for the chapter"
+            items:
+              type: string
+            minItems: 3
+            maxItems: 5
+            examples:
+              - ["Understand the definition and scope of Physical AI"]
+          key_takeaways:
+            type: array
+            description: "Key takeaways summary"
+            items:
+              type: string
+            minItems: 3
+            maxItems: 5
+            examples:
+              - ["Physical AI combines embodied systems with intelligent algorithms"]
+          prerequisites:
+            type: array
+            description: "Required knowledge (optional)"
+            items:
+              type: string
+            examples:
+              - ["Basic computer science knowledge"]
+
+  # Code example structure
+  CodeExample:
+    type: object
+    required:
+      - language
+      - code
+    properties:
+      language:
+        type: string
+        description: "Programming language"
+        enum: ["python", "javascript", "typescript", "yaml", "json", "bash"]
+      code:
+        type: string
+        description: "Code snippet"
+      title:
+        type: string
+        description: "Optional filename or title"
+      highlight_lines:
+        type: array
+        description: "Line numbers to highlight"
+        items:
+          type: integer
+
+  # Image/diagram structure
+  ImageAsset:
+    type: object
+    required:
+      - src
+      - alt
+    properties:
+      src:
+        type: string
+        description: "Path relative to /static/img/"
+        pattern: "^[a-z0-9-/]+\\.(png|jpg|jpeg|webp|svg)$"
+      alt:
+        type: string
+        description: "Alt text for accessibility"
+        minLength: 10
+        maxLength: 200
+      caption:
+        type: string
+        description: "Optional caption"
+      width:
+        type: integer
+        description: "Optional width in pixels"
+        minimum: 100
+        maximum: 1200
+
+# Validation rules
+validation:
+  total_reading_time:
+    description: "Total reading time across all chapters"
+    constraint: "sum(all_chapters.reading_time) <= 45"
+
+  chapter_count:
+    description: "Number of chapters"
+    constraint: "6 <= count(chapters) <= 8"
+
+  description_length:
+    description: "SEO description optimal length"
+    constraint: "150 <= length(description) <= 160"
+
+  image_size:
+    description: "Maximum image file size"
+    constraint: "file_size <= 100KB"
+
+# Performance budgets
+performance:
+  bundle_size:
+    initial_js: "200KB"
+    per_chapter: "10KB"
+
+  image_optimization:
+    format: "WebP preferred"
+    max_size: "100KB"
+
+  load_time:
+    initial: "3s"
+    navigation: "1s"

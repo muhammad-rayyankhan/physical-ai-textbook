@@ -1,0 +1,225 @@
+/**
+ * Custom CSS for Physical AI & Humanoid Robotics Textbook
+ * Optimized for readability, performance, and mobile devices
+ */
+
+/* ============================================================================
+   CSS Variables - Theme Customization
+   ============================================================================ */
+
+:root {
+  /* Primary Brand Colors */
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+
+  /* Typography */
+  --ifm-font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ifm-font-family-monospace: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.65;
+
+  /* Spacing for readability */
+  --ifm-paragraph-margin-bottom: 1.2rem;
+  --ifm-heading-margin-top: 1.5rem;
+  --ifm-heading-margin-bottom: 0.75rem;
+
+  /* Code blocks */
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode overrides */
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   Typography & Readability
+   ============================================================================ */
+
+/* Optimize paragraph spacing for reading */
+.markdown p {
+  margin-bottom: var(--ifm-paragraph-margin-bottom);
+  max-width: 70ch; /* Optimal line length for readability */
+}
+
+/* Heading styles */
+.markdown h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-top: 0;
+}
+
+.markdown h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  padding-bottom: 0.5rem;
+}
+
+.markdown h3 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+/* ============================================================================
+   Code Blocks
+   ============================================================================ */
+
+/* Code block styling */
+.prism-code {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Inline code */
+code {
+  background-color: var(--ifm-color-emphasis-200);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+/* Code block title */
+.prism-code[class*='language-'] {
+  margin-bottom: 1rem;
+}
+
+/* ============================================================================
+   Mobile Optimization
+   ============================================================================ */
+
+/* Ensure touch targets are at least 44x44px */
+.navbar__link,
+.menu__link,
+.pagination-nav__link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Mobile-friendly table of contents */
+@media (max-width: 996px) {
+  .table-of-contents {
+    font-size: 0.9rem;
+  }
+
+  /* Optimize font size for mobile */
+  :root {
+    --ifm-font-size-base: 15px;
+  }
+
+  /* Reduce heading sizes on mobile */
+  .markdown h1 {
+    font-size: 1.85rem;
+  }
+
+  .markdown h2 {
+    font-size: 1.5rem;
+  }
+
+  .markdown h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ============================================================================
+   Performance Optimizations
+   ============================================================================ */
+
+/* Optimize images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+}
+
+/* Lazy loading hint */
+img[loading='lazy'] {
+  content-visibility: auto;
+}
+
+/* ============================================================================
+   Accessibility
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Skip to content link */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  left: 0;
+  top: 0;
+}
+
+/* ============================================================================
+   Custom Components
+   ============================================================================ */
+
+/* Callout boxes (for future use) */
+.callout {
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--ifm-color-primary);
+  background-color: var(--ifm-color-emphasis-100);
+  border-radius: 0.25rem;
+}
+
+/* Key takeaways section */
+.key-takeaways {
+  background-color: var(--ifm-color-emphasis-100);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin: 2rem 0;
+}
+
+.key-takeaways h3 {
+  margin-top: 0;
+  color: var(--ifm-color-primary);
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .navbar,
+  .footer,
+  .table-of-contents,
+  .pagination-nav {
+    display: none;
+  }
+
+  .markdown {
+    max-width: 100%;
+  }
+}
+

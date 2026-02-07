@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: User Progress API
+  description: API for tracking user reading progress (future implementation with authentication)
+  version: 1.0.0
+  contact:
+    name: Physical AI Textbook Team
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server (future)
+  - url: http://localhost:8000/v1
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /progress:
+    get:
+      summary: Get user's reading progress
+      description: Returns the authenticated user's reading progress across all chapters
+      operationId: getUserProgress
+      tags:
+        - Progress
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProgress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Update reading progress
+      description: Records that the user has read a specific chapter or page
+      operationId: updateProgress
+      tags:
+        - Progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProgressUpdate'
+      responses:
+        '200':
+          description: Progress updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProgress'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /progress/chapters/{chapterId}:
+    get:
+      summary: Get progress for specific chapter
+      description: Returns detailed progress for a specific chapter
+      operationId: getChapterProgress
+      tags:
+        - Progress
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          description: Chapter identifier
+          schema:
+            type: string
+            example: chapter-01
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterProgress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserProgress:
+      type: object
+      required:
+        - user_id
+        - chapters_completed
+        - total_reading_time
+        - completion_percentage
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        chapters_completed:
+          type: array
+          items:
+            type: string
+          example: [chapter-01, chapter-02]
+        current_chapter:
+          type: string
+          nullable: true
+          example: chapter-03
+        total_reading_time:
+          type: integer
+          description: Total time spent reading in minutes
+          example: 45
+        completion_percentage:
+          type: number
+          format: float
+          description: Overall completion percentage (0-100)
+          example: 33.3
+        last_read_at:
+          type: string
+          format: date-time
+          example: 2026-02-01T10:30:00Z
+        chapter_progress:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChapterProgress'
+
+    ChapterProgress:
+      type: object
+      required:
+        - chapter_id
+        - completed
+      properties:
+        chapter_id:
+          type: string
+          example: chapter-01
+        completed:
+          type: boolean
+          example: true
+        reading_time:
+          type: integer
+          description: Time spent on this chapter in minutes
+          example: 8
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2026-02-01T10:15:00Z
+        quiz_score:
+          type: number
+          format: float
+          nullable: true
+          description: Quiz score if quiz was taken (0-100)
+          example: 85.0
+
+    ProgressUpdate:
+      type: object
+      required:
+        - chapter_id
+        - action
+      properties:
+        chapter_id:
+          type: string
+          example: chapter-01
+        action:
+          type: string
+          enum: [started, completed, quiz_taken]
+          example: completed
+        reading_time:
+          type: integer
+          description: Time spent reading in minutes
+          example: 7
+        quiz_score:
+          type: number
+          format: float
+          nullable: true
+          description: Quiz score if applicable (0-100)
+          example: 90.0
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: unauthorized
+        message:
+          type: string
+          example: Authentication required
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: bad_request
+            message: Invalid request body
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unauthorized
+            message: Authentication required
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: not_found
+            message: Chapter not found
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: internal_error
+            message: An unexpected error occurred

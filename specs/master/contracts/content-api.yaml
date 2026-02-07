@@ -1,0 +1,278 @@
+openapi: 3.0.3
+info:
+  title: Content API
+  description: API for retrieving textbook content and metadata (future backend integration)
+  version: 1.0.0
+  contact:
+    name: Physical AI Textbook Team
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server (future)
+  - url: http://localhost:8000/v1
+    description: Local development server
+
+paths:
+  /chapters:
+    get:
+      summary: List all chapters
+      description: Returns a list of all textbook chapters with metadata
+      operationId: listChapters
+      tags:
+        - Content
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChapterSummary'
+                  total_count:
+                    type: integer
+                    example: 6
+                  total_reading_time:
+                    type: integer
+                    description: Total reading time in minutes
+                    example: 45
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /chapters/{chapterId}:
+    get:
+      summary: Get chapter details
+      description: Returns full chapter content and metadata
+      operationId: getChapter
+      tags:
+        - Content
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          description: Chapter identifier (e.g., "chapter-01")
+          schema:
+            type: string
+            example: chapter-01
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /search:
+    get:
+      summary: Search textbook content
+      description: Full-text search across all chapters
+      operationId: searchContent
+      tags:
+        - Content
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+            example: sensors
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+                  total_count:
+                    type: integer
+                    example: 5
+                  query:
+                    type: string
+                    example: sensors
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ChapterSummary:
+      type: object
+      required:
+        - id
+        - number
+        - title
+        - description
+        - reading_time
+      properties:
+        id:
+          type: string
+          example: chapter-01
+        number:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Foundations of Physical AI
+        description:
+          type: string
+          example: Explore the history, key concepts, and foundational principles of Physical AI
+        reading_time:
+          type: integer
+          description: Estimated reading time in minutes
+          example: 7
+        url:
+          type: string
+          format: uri
+          example: /chapter-01
+
+    Chapter:
+      type: object
+      required:
+        - id
+        - number
+        - title
+        - description
+        - content
+        - reading_time
+      properties:
+        id:
+          type: string
+          example: chapter-01
+        number:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Foundations of Physical AI
+        description:
+          type: string
+          example: Explore the history, key concepts, and foundational principles of Physical AI
+        content:
+          type: string
+          description: Full chapter content in Markdown format
+          example: "# Foundations of Physical AI\n\nPhysical AI combines..."
+        reading_time:
+          type: integer
+          description: Estimated reading time in minutes
+          example: 7
+        learning_objectives:
+          type: array
+          items:
+            type: string
+          example:
+            - Understand the definition and scope of Physical AI
+            - Learn the historical evolution of robotics and AI
+        key_takeaways:
+          type: array
+          items:
+            type: string
+          example:
+            - Physical AI combines embodied systems with intelligent algorithms
+        prerequisites:
+          type: array
+          items:
+            type: string
+          example:
+            - Basic computer science knowledge
+        url:
+          type: string
+          format: uri
+          example: /chapter-01
+
+    SearchResult:
+      type: object
+      required:
+        - chapter_id
+        - chapter_title
+        - excerpt
+        - relevance_score
+      properties:
+        chapter_id:
+          type: string
+          example: chapter-02
+        chapter_title:
+          type: string
+          example: Sensors & Perception
+        excerpt:
+          type: string
+          description: Text excerpt containing the search term
+          example: "...various types of sensors including cameras, LIDAR, and IMUs..."
+        relevance_score:
+          type: number
+          format: float
+          description: Relevance score (0-1)
+          example: 0.85
+        url:
+          type: string
+          format: uri
+          example: /chapter-02
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: not_found
+        message:
+          type: string
+          example: Chapter not found
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: bad_request
+            message: Invalid query parameter
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: not_found
+            message: Chapter not found
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: internal_error
+            message: An unexpected error occurred
