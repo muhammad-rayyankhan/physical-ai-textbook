@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -ExecutionPolicy Bypass -File \".specify/scripts/powershell/setup-plan.ps1\" -Json)",
+      "Bash(powershell:*)",
+      "WebSearch",
+      "WebFetch(domain:docusaurus.io)",
+      "Bash(npm view:*)"
+    ]
+  }
+}
