@@ -54,3 +54,7 @@ pnpm-lock.yaml
 # Vercel
 .vercel
 pythonanywhere_asgi_*.py
+
+# Sensitive deployment files
+API_KEYS_REFERENCE.md
+physical-ai-textbook-backend/
