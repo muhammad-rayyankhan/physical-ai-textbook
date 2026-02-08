@@ -12,7 +12,7 @@ const config = {
 
   // Custom fields for environment variables
   customFields: {
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
+    apiUrl: process.env.API_URL || 'https://rayyan-11-physical-ai-textbook-backend.hf.space',
   },
 
   onBrokenLinks: 'warn',
