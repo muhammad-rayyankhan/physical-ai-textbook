@@ -14,7 +14,7 @@ const getApiUrl = (): string => {
       return customFields.apiUrl as string;
     }
   }
-  return 'https://cristopher-mannered-deangelo.ngrok-free.dev';
+  return 'https://rayyan-11-physical-ai-textbook-backend.hf.space';
 };
 
 const API_URL = getApiUrl();
