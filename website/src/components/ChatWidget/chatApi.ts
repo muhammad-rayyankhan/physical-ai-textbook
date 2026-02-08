@@ -11,13 +11,16 @@ const getApiUrl = (): string => {
     // @ts-ignore - Docusaurus injects this
     const customFields = window?.docusaurus?.siteConfig?.customFields;
     if (customFields?.apiUrl) {
+      console.log('[ChatAPI] Using API URL from customFields:', customFields.apiUrl);
       return customFields.apiUrl as string;
     }
   }
+  console.log('[ChatAPI] Using fallback API URL: https://rayyan-11-physical-ai-textbook-backend.hf.space');
   return 'https://rayyan-11-physical-ai-textbook-backend.hf.space';
 };
 
 const API_URL = getApiUrl();
+console.log('[ChatAPI] Final API_URL:', API_URL);
 
 export interface Citation {
   chapter_id: string;
