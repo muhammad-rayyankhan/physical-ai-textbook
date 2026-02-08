@@ -34,11 +34,22 @@ async def root():
 
 # Initialize database on startup
 from src.core.database import init_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize database tables on startup."""
-    init_db()
+    try:
+        logger.info("Initializing database...")
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        logger.error("Application will continue but database features may not work")
+        # Don't fail the entire app if DB init fails
+        pass
 
 # Include routers
 from src.api.routes import health, chat, auth
