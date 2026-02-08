@@ -1,107 +1,80 @@
-# RAG Chatbot Backend
+# Physical AI & Humanoid Robotics Textbook - Backend API
 
-Backend API for the Physical AI & Humanoid Robotics textbook chatbot using RAG (Retrieval-Augmented Generation).
+RAG-powered chatbot backend for the Physical AI & Humanoid Robotics textbook.
 
 ## Architecture
 
-- **Vector Database**: Chroma (local, persistent)
-- **Database**: SQLite (file-based)
-- **LLM**: Ollama with Llama 3.2 or Mistral (local)
+- **Vector Database**: Qdrant Cloud (managed)
+- **Database**: Neon PostgreSQL (managed)
+- **LLM**: Groq (free, fast inference)
 - **Framework**: FastAPI
-- **Embeddings**: sentence-transformers (all-MiniLM-L6-v2)
+- **Embeddings**: Hugging Face sentence-transformers
+
+## Features
+
+- **FastAPI Backend**: High-performance async API
+- **RAG Pipeline**: Retrieval-Augmented Generation for accurate answers
+- **Qdrant Vector Database**: Semantic search over textbook content
+- **Groq LLM**: Fast, free language model inference (llama-3.3-70b-versatile)
+- **PostgreSQL**: User authentication and session management
+- **Hugging Face Embeddings**: Free text embeddings
 
 ## Prerequisites
 
-### 1. Install Ollama
+- Python 3.10+
+- API keys (all free, no credit card):
+  - Qdrant Cloud account
+  - Neon PostgreSQL database
+  - Groq API key
+  - Hugging Face API key
 
-Download and install Ollama from [https://ollama.ai](https://ollama.ai)
+## Configuration
 
-After installation, pull a model:
+Create a `.env` file with the following variables:
 
-```bash
-# Option 1: Llama 3.2 (3B, faster)
-ollama pull llama3.2
-
-# Option 2: Mistral (7B, better quality)
-ollama pull mistral
+```env
+QDRANT_URL=<your-qdrant-cluster-url>
+QDRANT_API_KEY=<your-qdrant-api-key>
+QDRANT_COLLECTION=textbook_chunks
+DATABASE_URL=<your-neon-postgres-url>
+GROQ_API_KEY=<your-groq-api-key>
+GROQ_MODEL=llama-3.3-70b-versatile
+HUGGINGFACE_API_KEY=<your-hf-api-key>
+API_HOST=0.0.0.0
+API_PORT=8000
+CORS_ORIGINS=https://website-seven-eta-74.vercel.app,http://localhost:3000
+AUTH_SECRET=<your-secret-key>
+ENVIRONMENT=production
+USE_OPENAI_EMBEDDINGS=false
+USE_OPENAI_LLM=false
 ```
 
-Verify installation:
+For Hugging Face Spaces deployment, set these as **Repository secrets** in your Space settings.
 
-```bash
-ollama run llama3.2 "Hello"
-```
+## Local Development
 
-### 2. Install Python Dependencies
+### 1. Install Dependencies
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-## Configuration
+### 2. Set Up Environment Variables
 
-The `.env` file has been created with default settings:
+Copy `.env.example` to `.env` and fill in your API keys.
 
-```env
-# Ollama Configuration
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.2
+### 3. Run Document Ingestion
 
-# Chroma Configuration
-CHROMA_PERSIST_DIR=./data/chroma
-CHROMA_COLLECTION=textbook_chunks
-
-# SQLite Configuration
-DATABASE_URL=sqlite:///./data/chat_history.db
-
-# Embeddings
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-
-# API Configuration
-API_HOST=0.0.0.0
-API_PORT=8000
-CORS_ORIGINS=http://localhost:3000
-
-# Environment
-ENVIRONMENT=development
-```
-
-You can modify these settings if needed.
-
-## Setup
-
-### 1. Create Data Directory
+Ingest the textbook chapters into Qdrant:
 
 ```bash
-mkdir -p data/chroma
+python -m rag.scripts.ingest_textbook --docs-dir ../website/docs --verbose
 ```
-
-### 2. Run Document Ingestion
-
-Ingest the textbook chapters into the vector database:
-
-```bash
-cd backend
-python -m rag.scripts.ingest_textbook --clear
-```
-
-This will:
-- Load all chapters from `website/docs/`
-- Split them into ~800 character chunks
-- Generate embeddings
-- Store in Chroma vector database
 
 Expected output: ~60-80 chunks from 6 chapters
 
-### 3. Start the API Server
-
-```bash
-cd backend
-python -m src.main
-```
-
-Or with uvicorn directly:
+### 4. Start the API Server
 
 ```bash
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
@@ -112,7 +85,29 @@ The API will be available at:
 - Docs: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
+## Deployment to Hugging Face Spaces
+
+This backend is configured for deployment on Hugging Face Spaces using Docker.
+
+### Quick Deploy
+
+1. Create a new Space at https://huggingface.co/new-space
+2. Choose **Docker** as SDK
+3. Clone this repository to your Space
+4. Set environment variables in Space settings (Repository secrets)
+5. Space will automatically build and deploy
+
+See `HUGGINGFACE-DEPLOYMENT.md` for detailed instructions.
+
 ## API Endpoints
+
+### Root
+
+```bash
+GET /
+```
+
+Returns API information and available endpoints.
 
 ### Health Check
 
@@ -122,15 +117,15 @@ GET /api/health
 
 Returns the health status of all services (database, vector store, LLM).
 
-### Ask Question
+### Chat Query
 
 ```bash
-POST /api/chat/ask
+POST /api/chat/query
 Content-Type: application/json
 
 {
-  "question": "What is Physical AI?",
-  "session_id": "optional-session-id"
+  "query": "What is Physical AI?",
+  "user_id": "optional-user-id"
 }
 ```
 
@@ -139,35 +134,31 @@ Response:
 ```json
 {
   "answer": "Physical AI refers to...",
-  "citations": [
+  "sources": [
     {
-      "chapter_id": "chapter-01",
-      "chapter_title": "Foundations of Physical AI",
-      "section": "What is Physical AI?",
-      "text_snippet": "...",
-      "relevance_score": 0.95
+      "content": "...",
+      "metadata": {
+        "chapter": "chapter-01",
+        "title": "Foundations of Physical AI"
+      },
+      "score": 0.95
     }
-  ],
-  "sources": ["chapter-01"],
-  "session_id": "uuid"
+  ]
 }
 ```
 
-### Get Chat History
+### Authentication
 
 ```bash
-GET /api/chat/history?session_id={id}&limit=50
+POST /api/auth/register
+POST /api/auth/login
 ```
 
-Returns chat history for a session.
+User registration and authentication endpoints.
 
-### List Sessions
+### Interactive Documentation
 
-```bash
-GET /api/chat/sessions?limit=10
-```
-
-Returns recent chat sessions.
+Visit `/docs` for Swagger UI or `/redoc` for ReDoc documentation.
 
 ## Testing
 

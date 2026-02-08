@@ -53,3 +53,4 @@ pnpm-lock.yaml
 
 # Vercel
 .vercel
+pythonanywhere_asgi_*.py
