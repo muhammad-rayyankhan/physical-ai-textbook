@@ -4,7 +4,20 @@
  * Handles communication with the backend RAG chatbot API.
  */
 
-const API_URL = 'http://localhost:8001';
+// For Docusaurus, we need to access customFields through the global window object
+// This is set during build time and available in the browser
+const getApiUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    // @ts-ignore - Docusaurus injects this
+    const customFields = window?.docusaurus?.siteConfig?.customFields;
+    if (customFields?.apiUrl) {
+      return customFields.apiUrl as string;
+    }
+  }
+  return 'https://cristopher-mannered-deangelo.ngrok-free.dev';
+};
+
+const API_URL = getApiUrl();
 
 export interface Citation {
   chapter_id: string;

@@ -10,6 +10,11 @@ const config = {
   url: 'https://your-domain.vercel.app',
   baseUrl: '/',
 
+  // Custom fields for environment variables
+  customFields: {
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
+  },
+
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
