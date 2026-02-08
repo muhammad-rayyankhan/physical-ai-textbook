@@ -1,3 +1,12 @@
+---
+title: Physical AI Textbook Backend
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # Physical AI & Humanoid Robotics Textbook - Backend API
 
 RAG-powered chatbot backend for the Physical AI & Humanoid Robotics textbook.
